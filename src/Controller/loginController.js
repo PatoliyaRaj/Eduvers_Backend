@@ -1,4 +1,3 @@
-
 const Users = require("../Models/SignUpModel");
 
 const CreateLogin = async (req, res) => {
@@ -63,7 +62,12 @@ const CreateLogin = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Login successful", success: true, isLogin: true });
+      .json({
+        message: "Login successful",
+        success: true,
+        isLogin: true,
+        UserType: user.userType,
+      });
   } catch (error) {
     console.error("Error logging in:", error);
     return res

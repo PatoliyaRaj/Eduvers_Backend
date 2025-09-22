@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     confirmPassword: { type: String, required: true },
     agreeTerms: { type: Boolean, default: false },
+    about:{type:String , default:""},
     isLogin: {type:Boolean , default:false}
   },
   { timestamps: true }

@@ -112,17 +112,24 @@ const CreateUser = async (req, res) => {
 };
 
 
+
 const getuserDetails = async (req, res) => {
+  
   const { email } = req.params;
 
   try {
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "Email parameter is required", success: false });
+    }
+    
     const user = await Users.findOne({ email });
     if (!user) {
       return res
         .status(404)
         .json({ message: "User not found", success: false });
     }
-
     res.status(200).json({ message: "User found", success: true, user });
   } catch (error) {
     console.error("Error fetching user details:", error);
