@@ -1,4 +1,3 @@
-
 const Course = require("../Models/CourseModel");
 
 const CreateCourse = async (req, res) => {
@@ -71,6 +70,62 @@ const CreateCourse = async (req, res) => {
   }
 };
 
+const allCourses = async (req, res) => {
+  try {
+    const courses = await Course.find({});
+    if (!courses || courses.length === 0) {
+      return res.status(404).json({
+        message: "No Courses Found",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Courses Retrieved Successfully",
+      success: true,
+      data: courses,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error,Please Try Again",
+      success: false,
+    });
+  }
+};
+
+const DeleteCourse = async (req, res) => {
+  const { id } = req.query;
+
+  try {
+    if (!id) {
+      return res.status(400).json({
+        message: "Course ID is required",
+        success: false,
+      });
+    }
+    const deletedCourse = await Course.findByIdAndDelete(id);
+    if (!deletedCourse) {
+      return res.status(404).json({
+        message: "Course Not Found",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Course Deleted Successfully",
+      success: true,
+      data: deletedCourse,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error, Please Try Again",
+      success: false,
+    });
+  }
+};
+
 module.exports = {
   CreateCourse,
+  allCourses,
+  DeleteCourse,
 };

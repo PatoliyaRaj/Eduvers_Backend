@@ -2,6 +2,6 @@ const router = require('express').Router();
 
 const { CreateContact } = require('../Controller/ContactUsController');
 
-router.post('/submit', CreateContact);
+router.post('/submitContact', CreateContact);
 
 module.exports = router;

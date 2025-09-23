@@ -32,7 +32,7 @@ const CreateUser = async (req, res) => {
       !phoneNo ||
       !email ||
       !password ||
-      !confirmPassword 
+      !confirmPassword
     ) {
       return res
         .status(400)
@@ -111,10 +111,7 @@ const CreateUser = async (req, res) => {
   }
 };
 
-
-
 const getuserDetails = async (req, res) => {
-  
   const { email } = req.params;
 
   try {
@@ -123,7 +120,7 @@ const getuserDetails = async (req, res) => {
         .status(400)
         .json({ message: "Email parameter is required", success: false });
     }
-    
+
     const user = await Users.findOne({ email });
     if (!user) {
       return res
@@ -139,4 +136,20 @@ const getuserDetails = async (req, res) => {
   }
 };
 
-module.exports = { CreateUser, getuserDetails };
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await Users.find({});
+    if (!users || users.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No users found", success: false });
+    }
+    res.status(200).json({ message: "Users found", success: true, users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", success: false });
+  }
+};
+module.exports = { CreateUser, getuserDetails, getAllUsers };
