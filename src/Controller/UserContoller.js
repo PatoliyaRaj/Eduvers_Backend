@@ -152,4 +152,103 @@ const getAllUsers = async (req, res) => {
       .json({ message: "Internal server error", success: false });
   }
 };
-module.exports = { CreateUser, getuserDetails, getAllUsers };
+
+const UpdateUsers = async (req, res) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      message: "You not send the data for Update",
+      success: false,
+    });
+  }
+
+  try {
+    const { firstName, lastName, age, gender, phoneNo, about } = req.body;
+    req.body;
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(404).json({
+        message: "Occurs Some Issues Please Try Agani",
+        success: false,
+      });
+    }
+
+    const user = await Users.findOne({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    if (about && about.length < 20) {
+      return res.status(404).json({
+        message: "Please Enter More Than 20 Characters In About",
+        success: false,
+      });
+    }
+
+    if (phoneNo && !/^\d{10}$/.test(phoneNo)) {
+      return res
+        .status(400)
+        .json({ message: "Phone number must be 10 digits", success: false });
+    }
+
+    if (firstName && firstName.length < 2) {
+      return res.status(400).json({
+        message: "First name must be at least 2 characters",
+        success: false,
+      });
+    }
+
+    if (lastName && lastName.length < 2) {
+      return res.status(400).json({
+        message: "Last name must be at least 2 characters",
+        success: false,
+      });
+    }
+
+    if (age && age < 15) {
+      return res.status(400).json({
+        message: "Age must be greater than 15",
+        success: false,
+      });
+    }
+
+    const updatedUser = await Users.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          ...(firstName && { firstName }),
+          ...(lastName && { lastName }),
+          ...(age && { age }),
+          ...(gender && { gender }),
+          ...(phoneNo && { phoneNo }),
+          ...(about && { about }),
+        },
+      },
+      { new: true }
+    );
+
+    
+    if (!updatedUser) {
+      return res.status(400).json({
+        message: "Something Went Wrong , Please Try Again",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Your Detail Is Successfully Updated",
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+};
+module.exports = { CreateUser, getuserDetails, getAllUsers, UpdateUsers };
