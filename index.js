@@ -22,6 +22,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes (MUST come after middleware)
+app.use('/', (req, res) => {
+  res.send('Welcome to the EduVers API');
+});
 app.use("/User", signupRoutes);
 app.use("/Course", CourseRoutes);
 app.use("/Contact", ContactUsRoutes);
