@@ -15,7 +15,10 @@ const LogoutRoutes = require("./src/Routers/LogoutRouter");
 connectDB();
 
 // Middleware setup (MUST come before routes)
-app.use(cors());
+app.use(cors({
+  origin: 'https://eduvers.vercel.app/', 
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
