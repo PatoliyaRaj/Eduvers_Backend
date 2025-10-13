@@ -49,6 +49,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.json({
+    message: "EduVers API is running",
+    status: "success",
+    environment: process.env.NODE_ENV
+  });
+});
 app.use("/User", signupRoutes);
 app.use("/Course", CourseRoutes);
 app.use("/Contact", ContactUsRoutes);
