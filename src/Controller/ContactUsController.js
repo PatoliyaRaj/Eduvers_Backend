@@ -55,4 +55,30 @@ const CreateContact = async (req, res) => {
       .json({ message: "Internal server error", success: false });
   }
 };
-module.exports = { CreateContact };
+
+
+const GetComments = async (req, res) => {
+  try {
+    const contacts = await ContactUs.find();
+
+    if (!contacts || contacts.length === 0) {
+      return res.status(404).json({
+        message: "No comments found",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Comments retrieved successfully",
+      success: true,
+      contacts: contacts,
+    });
+    
+  } catch (error) {
+    console.error("Error retrieving comments:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+    });
+  }
+}
+module.exports = { CreateContact, GetComments };

@@ -42,7 +42,6 @@ const corsOptions = {
   ],
 };
 
-// Middleware setup (MUST come before routes)
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
@@ -64,5 +63,5 @@ app.use("/Logout", LogoutRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port https://localhost:${PORT}`);
+  console.log(`Server is running on port https://localhost:${PORT} in  ${process.env.NODE_ENV} mode`);
 });
