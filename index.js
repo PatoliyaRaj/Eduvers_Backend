@@ -14,11 +14,36 @@ const LogoutRoutes = require("./src/Routers/LogoutRouter");
 // Connect to database
 connectDB();
 
-// Middleware setup (MUST come before routes)
-app.use(cors({
-  origin: 'https://eduvers.vercel.app/', 
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL_DEV,
+      process.env.FRONTEND_URL_PROD,
+      undefined,
+    ];
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
-}));
+  optionsSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Authorization",
+    "Cache-Control",
+    "Pragma",
+    "Expires",
+  ],
+};
+
+// Middleware setup (MUST come before routes)
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
