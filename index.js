@@ -19,6 +19,8 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.FRONTEND_URL_DEV,
       process.env.FRONTEND_URL_PROD,
+      "http://localhost:3000",
+      "http://localhost:3001",
       undefined,
     ];
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {

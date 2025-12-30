@@ -10,7 +10,6 @@ const CreateContact = async (req, res) => {
   }
 
   const { fullname, email, phone, subject, message } = req.body;
-  console.log("Request body:", req.body);
   try {
     if (!fullname || !email || !phone || !subject || !message) {
       return res
