@@ -4,15 +4,36 @@ require("dotenv").config();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-const connectDB = require("./src/Db/dbconn");
-const signupRoutes = require("./src/Routers/SignupRoutes");
-const CourseRoutes = require("./src/Routers/CourseRoutes");
-const ContactUsRoutes = require("./src/Routers/ContactUsRoutes");
-const LoginRoutes = require("./src/Routers/LoginRouters");
-const LogoutRoutes = require("./src/Routers/LogoutRouter");
 
-// Connect to database
-connectDB();
+// ============ SEQUELIZE (ACTIVE) ============
+const { testConnection, syncDatabase } = require("./src/Db/sequelize");
+
+// Initialize database connection
+const initializeDatabase = async () => {
+  try {
+    await testConnection();
+
+    // Only sync database when SYNC_DB=true (set this once to create tables)
+    if (process.env.SYNC_DB === "true") {
+      await syncDatabase();
+      console.log("Database synced and tables created");
+    }
+
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Database initialization failed:", error);
+    process.exit(1);
+  }
+};
+
+initializeDatabase();
+// ============ END SEQUELIZE ============
+
+// Import Routes
+const userRoutes = require("./src/routes/userRoutes");
+const courseRoutes = require("./src/routes/courseRoutes");
+const contactRoutes = require("./src/routes/contactRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -37,7 +58,6 @@ const corsOptions = {
     "Authorization",
     "X-Requested-With",
     "Accept",
-    "Authorization",
     "Cache-Control",
     "Pragma",
     "Expires",
@@ -54,16 +74,23 @@ app.get("/", (req, res) => {
   res.json({
     message: "EduVers API is running",
     status: "success",
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   });
 });
-app.use("/User", signupRoutes);
-app.use("/Course", CourseRoutes);
-app.use("/Contact", ContactUsRoutes);
-app.use("/Login", LoginRoutes);
-app.use("/Logout", LogoutRoutes);
 
-const PORT = process.env.PORT || 3000;
+// Use Routes
+app.use("/User", userRoutes);
+app.use("/Course", courseRoutes);
+app.use("/Contact", contactRoutes);
+app.use("/Auth", authRoutes);
+
+// Compatibility with old structure (if requested)
+app.use("/Login", authRoutes); // /Login/Login will work, or I can map it directly
+app.use("/Logout", authRoutes);
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port https://localhost:${PORT} in  ${process.env.NODE_ENV} mode`);
+  console.log(
+    `Server is running on port http://localhost:${PORT} in ${process.env.NODE_ENV} mode`,
+  );
 });
