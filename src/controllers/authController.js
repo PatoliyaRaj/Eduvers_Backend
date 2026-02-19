@@ -95,7 +95,9 @@ const GetMe = async (req, res) => {
     res.status(200).json({
       message: "Current user retrieved successfully",
       success: true,
-      user,
+      data: {
+        user,
+      },
     });
   } catch (error) {
     console.error("GetMe error:", error.message);

@@ -1,17 +1,16 @@
 const { verifyAccessToken } = require("../utils/jwtHelper");
 const Users = require("../Models/User");
+const Tenant = require("../models/tenants");
 
 const authenticate = async (req, res, next) => {
   try {
     let token = null;
 
-    // Check Authorization header first (Bearer token)
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.substring(7);
     }
 
-    // Fallback to cookies
     if (!token && req.cookies) {
       token = req.cookies.accessToken;
     }
@@ -23,7 +22,6 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Verify token
     const decoded = verifyAccessToken(token);
 
     if (!decoded) {
@@ -33,25 +31,34 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Verify user still exists in database and the token matches (Single Session Control)
-    const user = await Users.findByPk(decoded.id, {
+    // Try to find account in Tenant table first, then User table
+    let  account = await Tenant.findByPk(decoded.id, {
       attributes: { exclude: ["password"] },
     });
+    let role = "tenant";
 
-    if (!user || user.token !== token) {
+    if (!account) {
+      account = await Users.findByPk(decoded.id, {
+        attributes: { exclude: ["password"] },
+      });
+      role = "user";
+    }
+
+    if (!account || account.token !== token) {
       return res.status(401).json({
         message: "Session expired or invalid token. Please login again.",
         success: false,
       });
     }
 
-    // Attach user info to request object
     req.user = {
       id: decoded.id,
       email: decoded.email,
       userType: decoded.userType,
       firstName: decoded.firstName,
       lastName: decoded.lastName,
+      role,
+      ...(role === "user" && { tenantId: account.tenantId }),
     };
 
     next();
@@ -70,9 +77,12 @@ const authenticate = async (req, res, next) => {
  */
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {
+    console.log(req.user, "before if ");
     if (!req.user) {
+      console.log(req.user, "after if ");
       return res.status(401).json({
-        message: "Authentication required",
+        message: "Authentication required ",
+        user: req.user,
         success: false,
       });
     }
@@ -130,8 +140,33 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
+/**
+ * Tenant Owner Middleware
+ * Only allows accounts from the tenants table (not user-level admins)
+ * Use this for actions like creating users under a tenant
+ */
+const isTenantOwner = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Authentication required",
+      success: false,
+    });
+  }
+
+  // role is set by authenticate middleware — "tenant" = from tenants table
+  if (req.user.role !== "tenant") {
+    return res.status(403).json({
+      message: "Only organization owners can perform this action.",
+      success: false,
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   authenticate,
   authorize,
   optionalAuth,
+  isTenantOwner,
 };

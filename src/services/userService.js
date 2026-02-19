@@ -1,8 +1,9 @@
 const User = require("../Models/User");
-const bcrypt = require("bcryptjs");
+const Tenant = require("../models/tenants");
 
 const createUser = async (userData) => {
   const {
+    tenantId,
     userType,
     firstName,
     lastName,
@@ -16,6 +17,7 @@ const createUser = async (userData) => {
   } = userData;
 
   if (
+    !tenantId ||
     !userType ||
     !firstName ||
     !lastName ||
@@ -27,6 +29,15 @@ const createUser = async (userData) => {
     !confirmPassword
   ) {
     throw new Error("All fields are required");
+  }
+
+  // Verify the tenant exists and is active
+  const tenant = await Tenant.findByPk(tenantId);
+  if (!tenant) {
+    throw new Error("Tenant not found. Cannot create user without a valid organization.");
+  }
+  if (tenant.status === "inactive" || tenant.status === "suspended") {
+    throw new Error("This organization is currently inactive or suspended Please contact support.");
   }
 
   const existingUser = await User.findOne({ where: { email } });
@@ -52,10 +63,10 @@ const createUser = async (userData) => {
     throw new Error("Please accept the terms and conditions");
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
+  // Password hashing is handled by the model's beforeCreate hook
+  // Do NOT hash here — the User model hook does it automatically
   const newUser = await User.create({
+    tenantId,
     userType,
     firstName,
     lastName,
@@ -63,11 +74,15 @@ const createUser = async (userData) => {
     gender,
     phoneNo,
     email,
-    password: hashedPassword,
+    password, // plain text — model hook hashes it
     agreeTerms,
   });
 
-  return newUser;
+  // Return user without password
+  const userJSON = newUser.toJSON();
+  delete userJSON.password;
+
+  return userJSON;
 };
 
 const getUserDetails = async (email) => {

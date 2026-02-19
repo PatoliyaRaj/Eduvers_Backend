@@ -1,7 +1,10 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-key-change-in-production";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key-change-in-production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-super-secret-key-change-in-production";
+const JWT_REFRESH_SECRET =
+  process.env.JWT_REFRESH_SECRET ||
+  "your-refresh-secret-key-change-in-production";
 
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = "3d"; // 3 days
@@ -20,7 +23,9 @@ const generateAccessToken = (payload) => {
  * @returns {string}
  */
 const generateRefreshToken = (payload) => {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+  return jwt.sign(payload, JWT_REFRESH_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRY,
+  });
 };
 
 /**

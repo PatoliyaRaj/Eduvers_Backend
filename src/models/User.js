@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../Db/sequelize");
+const bcrypt = require("bcryptjs");
 
 const User = sequelize.define(
   "User",
@@ -9,8 +10,19 @@ const User = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    tenantId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      field: "tenant_id",
+      references: {
+        model: "tenants",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
     userType: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("student", "teacher", "admin"),
       allowNull: false,
       field: "user_type",
     },
@@ -29,7 +41,7 @@ const User = sequelize.define(
       allowNull: false,
     },
     gender: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM("male", "female"),
       allowNull: false,
     },
     phoneNo: {
@@ -54,6 +66,10 @@ const User = sequelize.define(
       defaultValue: false,
       field: "agree_terms",
     },
+    status: {
+      type: DataTypes.ENUM("active", "inactive", "suspended"),
+      defaultValue: "active",
+    },
     about: {
       type: DataTypes.TEXT,
       defaultValue: "",
@@ -73,7 +89,25 @@ const User = sequelize.define(
     tableName: "users",
     timestamps: true,
     underscored: true,
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed("password")) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        }
+      },
+    },
   },
 );
+
+User.prototype.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = User;

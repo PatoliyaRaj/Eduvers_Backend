@@ -29,7 +29,7 @@ const LogOutController = async (req, res) => {
 
     // Clear token and login status in database
     const [updateCount] = await Users.update(
-      { isLogin: false, token: null },
+      { token: null },
       { where: whereClause }
     );
 

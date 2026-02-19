@@ -4,19 +4,41 @@ require("dotenv").config();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const syncRLSPolicies = require("./src/utils/syncPolicies");
 
-// ============ SEQUELIZE (ACTIVE) ============
 const { testConnection, syncDatabase } = require("./src/Db/sequelize");
+const supabase = require("./src/Db/supabase");
+require("./src/models/index");
 
 // Initialize database connection
 const initializeDatabase = async () => {
   try {
+    // Test Sequelize Connection
     await testConnection();
+
+    // Test Supabase Connection (Optional check)
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("users")
+        .select("id")
+        .limit(1);
+      if (error) {
+        console.warn(
+          "⚠️ Supabase client connected but failed to query 'users' table:",
+          error.message,
+        );
+      } else {
+        console.log("✅ Supabase client connected successfully.");
+      }
+    }
 
     // Only sync database when SYNC_DB=true (set this once to create tables)
     if (process.env.SYNC_DB === "true") {
+      await syncRLSPolicies("drop");
       await syncDatabase();
-      console.log("Database synced and tables created");
+      await syncRLSPolicies("full");
+
+      console.log("🚀 Database Schema and RLS Policies synced successfully");
     }
 
     console.log("Database connected successfully");
@@ -34,6 +56,8 @@ const userRoutes = require("./src/routes/userRoutes");
 const courseRoutes = require("./src/routes/courseRoutes");
 const contactRoutes = require("./src/routes/contactRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const tenantRoutes = require("./src/routes/tenantRoutes");
+const superAdminRoutes = require("./src/routes/superAdminRoutes");
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -78,15 +102,12 @@ app.get("/", (req, res) => {
   });
 });
 
-// Use Routes
 app.use("/User", userRoutes);
 app.use("/Course", courseRoutes);
 app.use("/Contact", contactRoutes);
 app.use("/Auth", authRoutes);
-
-// Compatibility with old structure (if requested)
-app.use("/Login", authRoutes); // /Login/Login will work, or I can map it directly
-app.use("/Logout", authRoutes);
+app.use("/Tenant", tenantRoutes);
+app.use("/SuperAdmin", superAdminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

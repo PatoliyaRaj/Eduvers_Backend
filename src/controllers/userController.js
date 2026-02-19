@@ -1,5 +1,6 @@
 const userService = require("../services/userService");
 
+// Create user — tenantId comes from the authenticated tenant's JWT
 const CreateUser = async (req, res) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -9,7 +10,20 @@ const CreateUser = async (req, res) => {
       });
     }
 
-    const newUser = await userService.createUser(req.body);
+    // tenantId is injected from the authenticated user (tenant/admin)
+    // This ensures users can only be created under the caller's tenant
+    const tenantId = req.user?.id;
+    if (!tenantId) {
+      return res.status(401).json({
+        message: "Authentication required. Tenant ID not found in token.",
+        success: false,
+      });
+    }
+
+    const newUser = await userService.createUser({
+      ...req.body,
+      tenantId,
+    });
 
     return res.status(201).json({
       message: "User created successfully",

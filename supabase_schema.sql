@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS users (
     confirm_password VARCHAR(255) NOT NULL,
     agree_terms BOOLEAN DEFAULT FALSE,
     about TEXT DEFAULT '',
-    is_login BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
@@ -59,6 +58,26 @@ CREATE TABLE IF NOT EXISTS contact_us (
 );
 
 -- ============================================
+-- TENANTS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS tenants (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    phone_no VARCHAR(15) NOT NULL,
+    oreg_owner_name VARCHAR(255) NOT NULL,
+    oreg_owner_email VARCHAR(255) NOT NULL,
+    oreg_owner_phone VARCHAR(15) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    agree_terms BOOLEAN DEFAULT FALSE,
+    about TEXT DEFAULT '',
+    token TEXT,
+    refresh_token TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- ============================================
 -- INDEXES FOR BETTER PERFORMANCE
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -67,19 +86,6 @@ CREATE INDEX IF NOT EXISTS idx_courses_category ON courses(category);
 CREATE INDEX IF NOT EXISTS idx_contact_us_email ON contact_us(email);
 
 -- ============================================
--- ROW LEVEL SECURITY (Optional - Enable as needed)
+-- NOTE: RLS and Policies have been moved to:
+-- supabase_rls_policies.sql
 -- ============================================
--- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE contact_us ENABLE ROW LEVEL SECURITY;
-
--- ============================================
--- SAMPLE POLICIES (Uncomment and modify as needed)
--- ============================================
--- Allow anonymous read access to courses
--- CREATE POLICY "Allow public read access to courses" ON courses
---     FOR SELECT USING (true);
-
--- Allow authenticated users to insert into contact_us
--- CREATE POLICY "Allow authenticated insert to contact_us" ON contact_us
---     FOR INSERT WITH CHECK (true);

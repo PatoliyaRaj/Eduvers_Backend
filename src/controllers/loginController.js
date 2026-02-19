@@ -4,7 +4,8 @@ const {
   verifyRefreshToken,
   generateAccessToken,
 } = require("../utils/jwtHelper");
-const Users = require("../Models/UserModel");
+
+const Users = require("../models/User");
 /**
  * Login Controller - Authenticates user and issues JWT tokens
  */
@@ -69,7 +70,7 @@ const CreateLogin = async (req, res) => {
 
     // Store refresh token in database (for token invalidation on logout)
     await Users.update(
-      { isLogin: true, token: refreshToken },
+      { token: refreshToken },
       { where: { email: user.email } }
     );
 
@@ -78,7 +79,7 @@ const CreateLogin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 59 * 60 * 3000, // 59 minutes
+      maxAge: 59 * 60 * 1000, // 59 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {

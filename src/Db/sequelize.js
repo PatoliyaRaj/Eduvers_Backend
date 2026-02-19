@@ -24,7 +24,6 @@ const testConnection = async () => {
 
 const syncDatabase = async () => {
   try {
-    // In production, you might want to use migrations instead of sync()
     await sequelize.sync({ alter: true });
     console.log("✅ Database synced successfully.");
   } catch (error) {
